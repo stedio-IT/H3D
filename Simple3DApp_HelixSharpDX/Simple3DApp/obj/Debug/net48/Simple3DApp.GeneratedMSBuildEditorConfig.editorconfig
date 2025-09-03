@@ -1,6 +1,6 @@
 is_global = true
 build_property.RootNamespace = Simple3DApp
-build_property.ProjectDir = C:\Users\Stefano\Downloads\Simple3DApp_HelixSharpDX_gcode_v9_tubesMerged_assimp_FIX\Simple3DApp_HelixSharpDX_gcode_v4_fixB_FUNZIONA\Simple3DApp_HelixSharpDX\Simple3DApp\
+build_property.ProjectDir = C:\Users\Stefano\source\repos\stedio-IT\H3D\Simple3DApp_HelixSharpDX\Simple3DApp\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.CsWinRTUseWindowsUIXamlProjections = false

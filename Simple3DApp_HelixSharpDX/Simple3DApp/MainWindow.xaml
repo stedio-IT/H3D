@@ -81,7 +81,7 @@
                 </ht:MeshGeometryModel3D>
 
                 
-                <!-- G-code Tubes (merged meshes) -->
+                <!-- G-code Tubes (merged mesh per bucket) -->
                 <ht:ItemsModel3D ItemsSource="{Binding Tubes}">
                     <ht:ItemsModel3D.ItemTemplate>
                         <DataTemplate DataType="{x:Type models:SceneItem}">

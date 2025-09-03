@@ -1,13 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Media.Media3D;
-using SharpDX;
-
 using Hx = HelixToolkit.Wpf.SharpDX;
-using HelixToolkit.SharpDX.Core;
-using HelixToolkit.Wpf.SharpDX.Assimp;
-using HelixToolkit.SharpDX.Core.Model;
-
+using SharpDX;
+using Assimp;
 
 namespace Simple3DApp.Services
 {
@@ -15,64 +11,67 @@ namespace Simple3DApp.Services
     {
         public static IEnumerable<Simple3DApp.Models.SceneItem> LoadAsSceneItems(string path)
         {
-            var importer = new Importer();
-            var scene = importer.Load(path);
             var items = new List<Simple3DApp.Models.SceneItem>();
+            var ctx = new AssimpContext();
+            var scene = ctx.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.JoinIdenticalVertices | PostProcessSteps.FlipWindingOrder);
 
-            void Visit(HelixToolkit.SharpDX.Core.Model.Scene.SceneNode node, Matrix parent)
+            void Visit(Node node, Matrix4x4 parent)
             {
-                var world = node.ModelMatrix * parent;
-
-                if (node is HelixToolkit.SharpDX.Core.Model.Scene.MeshNode meshNode)
+                var world = node.Transform * parent;
+                if (node.HasMeshes)
                 {
-                    var g = meshNode.Geometry as HelixToolkit.SharpDX.Core.MeshGeometry3D;
-                    if (g != null)
+                    foreach (var mi in node.MeshIndices)
                     {
-                        // bake world on positions
-                        var positions = new System.Collections.Generic.List<Vector3>(g.Positions.Count);
-                        for (int i = 0; i < g.Positions.Count; i++)
+                        var m = scene.Meshes[mi];
+                        if (!m.HasVertices || !m.HasFaces) continue;
+
+                        var positions = new List<Vector3>(m.VertexCount);
+                        for (int i = 0; i < m.VertexCount; i++)
                         {
-                            var p = Vector3.TransformCoordinate(g.Positions[i], world);
+                            var v = m.Vertices[i];
+                            var p = Vector3.TransformCoordinate(new Vector3(v.X, v.Y, v.Z), Convert(world));
                             positions.Add(p);
+                        }
+
+                        var indices = new List<int>(m.FaceCount * 3);
+                        foreach (var f in m.Faces)
+                        {
+                            if (f.IndexCount == 3)
+                            {
+                                indices.Add(f.Indices[0]);
+                                indices.Add(f.Indices[1]);
+                                indices.Add(f.Indices[2]);
+                            }
                         }
 
                         var mesh = new Hx.MeshGeometry3D
                         {
                             Positions = new Hx.Vector3Collection(positions),
-                            Indices = g.Indices != null ? new Hx.IntCollection(g.Indices) : null,
-                            Normals = null,
-                            TextureCoordinates = null
+                            Indices = new Hx.IntCollection(indices)
                         };
-
-                        Hx.Material mat = Hx.PhongMaterials.Gray;
-                        if (meshNode.Material is PhongMaterialCore pm)
-                        {
-                            mat = new Hx.PhongMaterial
-                            {
-                                DiffuseColor = pm.DiffuseColor,
-                                AmbientColor = pm.AmbientColor,
-                                SpecularColor = pm.SpecularColor,
-                                EmissiveColor = pm.EmissiveColor,
-                                SpecularShininess = pm.SpecularShininess
-                            };
-                        }
 
                         items.Add(new Simple3DApp.Models.SceneItem
                         {
                             Name = Path.GetFileName(path),
                             Geometry = mesh,
-                            Material = mat,
+                            Material = Hx.PhongMaterials.Gray,
                             Transform = Transform3D.Identity
                         });
                     }
                 }
-
-                foreach (var c in node.Items)
-                    Visit(c as HelixToolkit.SharpDX.Core.Model.Scene.SceneNode, world);
+                foreach (var c in node.Children) Visit(c, world);
             }
 
-            Visit(scene.Root, Matrix.Identity);
+            Visit(scene.RootNode, Matrix4x4.Identity);
             return items;
+        }
+
+        private static Matrix Convert(Matrix4x4 m)
+        {
+            return new Matrix(m.A1, m.B1, m.C1, m.D1,
+                              m.A2, m.B2, m.C2, m.D2,
+                              m.A3, m.B3, m.C3, m.D3,
+                              m.A4, m.B4, m.C4, m.D4);
         }
     }
 }

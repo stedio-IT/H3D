@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Stefano\\Downloads\\Simple3DApp_HelixSharpDX_gcode_v9_tubesMerged_assimp_FIX\\Simple3DApp_HelixSharpDX_gcode_v4_fixB_FUNZIONA\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj": {}
+    "C:\\Users\\Stefano\\source\\repos\\stedio-IT\\H3D\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Stefano\\Downloads\\Simple3DApp_HelixSharpDX_gcode_v9_tubesMerged_assimp_FIX\\Simple3DApp_HelixSharpDX_gcode_v4_fixB_FUNZIONA\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj": {
+    "C:\\Users\\Stefano\\source\\repos\\stedio-IT\\H3D\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Stefano\\Downloads\\Simple3DApp_HelixSharpDX_gcode_v9_tubesMerged_assimp_FIX\\Simple3DApp_HelixSharpDX_gcode_v4_fixB_FUNZIONA\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj",
+        "projectUniqueName": "C:\\Users\\Stefano\\source\\repos\\stedio-IT\\H3D\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj",
         "projectName": "Simple3DApp",
-        "projectPath": "C:\\Users\\Stefano\\Downloads\\Simple3DApp_HelixSharpDX_gcode_v9_tubesMerged_assimp_FIX\\Simple3DApp_HelixSharpDX_gcode_v4_fixB_FUNZIONA\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj",
+        "projectPath": "C:\\Users\\Stefano\\source\\repos\\stedio-IT\\H3D\\Simple3DApp_HelixSharpDX\\Simple3DApp\\Simple3DApp.csproj",
         "packagesPath": "C:\\Users\\Stefano\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Stefano\\Downloads\\Simple3DApp_HelixSharpDX_gcode_v9_tubesMerged_assimp_FIX\\Simple3DApp_HelixSharpDX_gcode_v4_fixB_FUNZIONA\\Simple3DApp_HelixSharpDX\\Simple3DApp\\obj\\",
+        "outputPath": "C:\\Users\\Stefano\\source\\repos\\stedio-IT\\H3D\\Simple3DApp_HelixSharpDX\\Simple3DApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -52,13 +52,9 @@
         "net48": {
           "targetAlias": "net48",
           "dependencies": {
-            "HelixToolkit.SharpDX.Assimp": {
+            "AssimpNet": {
               "target": "Package",
-              "version": "[2.27.3, )"
-            },
-            "HelixToolkit.SharpDX.Core": {
-              "target": "Package",
-              "version": "[2.27.3, )"
+              "version": "[4.1.0, )"
             },
             "HelixToolkit.Wpf.SharpDX": {
               "target": "Package",

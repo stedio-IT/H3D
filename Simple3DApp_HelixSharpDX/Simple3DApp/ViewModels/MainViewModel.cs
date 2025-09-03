@@ -43,7 +43,14 @@ namespace Simple3DApp.ViewModels
         private int _maxLayer;
         public int MaxLayer { get => _maxLayer; private set { _maxLayer = value; OnPropertyChanged(); } }
         private int _currentMaxLayer;
-        public int CurrentMaxLayer { get => _currentMaxLayer; set { _currentMaxLayer = value; OnPropertyChanged(); RefreshVisibleLines(); } }
+        public int CurrentMaxLayer
+        {
+            get => _currentMaxLayer; set
+            {
+                _currentMaxLayer = value; OnPropertyChanged(); RefreshVisibleLines();
+                BuildTubesAfterLines();
+            }
+        }
         private bool _isLoading;
         public bool IsLoading { get => _isLoading; set { _isLoading = value; OnPropertyChanged(); } }
         private double _progress;
@@ -132,9 +139,9 @@ namespace Simple3DApp.ViewModels
             var mb = new Hx.MeshBuilder(true, true, true);
             // Piano sul piano XY a Z=0 (100x100)
             var p0 = new Vector3(-50, -50, 0);
-            var p1 = new Vector3( 50, -50, 0);
-            var p2 = new Vector3( 50,  50, 0);
-            var p3 = new Vector3(-50,  50, 0);
+            var p1 = new Vector3(50, -50, 0);
+            var p2 = new Vector3(50, 50, 0);
+            var p3 = new Vector3(-50, 50, 0);
             mb.AddTriangle(p0, p1, p2);
             mb.AddTriangle(p0, p2, p3);
             var mesh = mb.ToMeshGeometry3D();
@@ -161,116 +168,106 @@ namespace Simple3DApp.ViewModels
             }
         }
 
-        
-private async void ImportGcode()
-{
-    try
-    {
-        var ofd = new Microsoft.Win32.OpenFileDialog
-        {
-            Filter = "G-code files (*.gcode;*.gco;*.gc)|*.gcode;*.gco;*.gc|All files (*.*)|*.*",
-            Title = "Seleziona un file G-code"
-        };
-        if (ofd.ShowDialog() == true && File.Exists(ofd.FileName))
-        {
-            LastGcodePath = ofd.FileName;
-            _loadCts?.Cancel();
-            _loadCts = new System.Threading.CancellationTokenSource();
-            IsLoading = true;
-            Progress = 0; Status = "Parsing G-code...";
-            Lines.Clear();
-            _layerToLines.Clear();
 
-            var prog = new Progress<Simple3DApp.Services.GCodeProgress>(p =>
+        private async void ImportGcode()
+        {
+            try
             {
-                if (p.TotalBytes > 0) Progress = (double)p.BytesRead / p.TotalBytes;
-                Status = $"Passo {p.Pass}: {p.BytesRead / (1024 * 1024)}MB / {p.TotalBytes / (1024 * 1024)}MB - Layers: {p.LayersParsed}  Segments: {p.SegmentsParsed}";
-            });
-
-            var res = await Simple3DApp.Services.GCodeAsyncLoader.BuildLayeredAsync(
-                LastGcodePath, ColorMode, 8, prog, _loadCts.Token);
-
-            _layerToLines = res.LayerToItems;
-            MaxLayer = res.MaxLayer;
-            CurrentMaxLayer = MaxLayer; // mostra tutto
-
-            RefreshVisibleLines();
-            var tubesRes = await Simple3DApp.Services.GCodeAsyncLoader.BuildTubesMergedAsync(
-                LastGcodePath, ColorMode, 8, (float)TubeRadius, 8, prog, _loadCts.Token);
-            _layerToTubes = tubesRes.LayerToItems;
-            RefreshVisibleTubes();
-            IsLoading = false;
-            Status = $"Caricato: {MaxLayer + 1} layer";
-        }
-    }
-    catch (OperationCanceledException)
-    {
-        IsLoading = false;
-        Status = "Caricamento annullato";
-    }
-    catch (Exception ex)
-    {
-        IsLoading = false;
-        System.Windows.MessageBox.Show("Errore durante l'import G-code:" + ex.Message, "Import G-code", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-    }
-}
-
-private void RefreshVisibleLines()
-{
-    Lines.Clear();
-    foreach (var kv in _layerToLines)
-    {
-        if (kv.Key <= CurrentMaxLayer)
-        {
-            foreach (var it in kv.Value) Lines.Add(it);
-        }
-    }
-}
-
-private void ImportStl()
-{
-    try
-    {
-        var ofd = new Microsoft.Win32.OpenFileDialog
-        {
-            Filter = "3D files|*.stl;*.obj;*.ply;*.3mf;*.fbx;*.dae;*.off;*.x;*.gltf;*.glb|All files (*.*)|*.*",
-            Title = "Seleziona un file 3D (Assimp)"
-        };
-        if (ofd.ShowDialog() == true && System.IO.File.Exists(ofd.FileName))
-        {
-            foreach (var si in Simple3DApp.Services.AssimpSceneLoader.LoadAsSceneItems(ofd.FileName))
-                Items.Add(si);
-        }
-    }
-    catch (System.Exception ex)
-    {
-        System.Windows.MessageBox.Show("Errore durante l'import 3D (Assimp):
-" + ex.Message, "Import 3D", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-    }
-};
+                var ofd = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "G-code files (*.gcode;*.gco;*.gc)|*.gcode;*.gco;*.gc|All files (*.*)|*.*",
+                    Title = "Seleziona un file G-code"
+                };
                 if (ofd.ShowDialog() == true && File.Exists(ofd.FileName))
                 {
-                    var mesh = StlLoader.Load(ofd.FileName);
-                    Items.Add(new SceneItem
+                    LastGcodePath = ofd.FileName;
+                    _loadCts?.Cancel();
+                    _loadCts = new System.Threading.CancellationTokenSource();
+                    IsLoading = true;
+                    Progress = 0; Status = "Parsing G-code...";
+                    Lines.Clear();
+                    _layerToLines.Clear();
+
+                    var prog = new Progress<Simple3DApp.Services.GCodeProgress>(p =>
                     {
-                        Name = Path.GetFileName(ofd.FileName),
-                        Geometry = mesh,
-                        Material = new Hx.PhongMaterial
-                        {
-                            DiffuseColor = new Color4(0.75f, 0.75f, 0.78f, 1f),
-                            AmbientColor = new Color4(0.2f, 0.2f, 0.25f, 1f),
-                            SpecularColor = new Color4(0.3f, 0.3f, 0.3f, 1f),
-                            SpecularShininess = 60f
-                        }
+                        if (p.TotalBytes > 0) Progress = (double)p.BytesRead / p.TotalBytes;
+                        Status = $"Passo {p.Pass}: {p.BytesRead / (1024 * 1024)}MB / {p.TotalBytes / (1024 * 1024)}MB - Layers: {p.LayersParsed}  Segments: {p.SegmentsParsed}";
                     });
+
+                    var res = await Simple3DApp.Services.GCodeAsyncLoader.BuildLayeredAsync(
+                        LastGcodePath, ColorMode, 8, prog, _loadCts.Token);
+
+                    _layerToLines = res.LayerToItems;
+                    MaxLayer = res.MaxLayer;
+                    CurrentMaxLayer = MaxLayer; // mostra tutto
+
+                    RefreshVisibleLines();
+                    BuildTubesAfterLines();
+                    IsLoading = false;
+                    Status = $"Caricato: {MaxLayer + 1} layer";
                 }
+            }
+            catch (OperationCanceledException)
+            {
+                IsLoading = false;
+                Status = "Caricamento annullato";
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Errore durante l'import STL:\n" + ex.Message, "Import STL", MessageBoxButton.OK, MessageBoxImage.Error);
+                IsLoading = false;
+                System.Windows.MessageBox.Show("Errore durante l'import G-code:" + ex.Message, "Import G-code", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
 
+        private void RefreshVisibleLines()
+        {
+            Lines.Clear();
+            foreach (var kv in _layerToLines)
+            {
+                if (kv.Key <= CurrentMaxLayer)
+                {
+                    foreach (var it in kv.Value) Lines.Add(it);
+                }
+            }
+        }
+
+        private void ImportStl()
+        {
+            try
+            {
+                var ofd = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "3D files|*.stl;*.obj;*.ply;*.3mf;*.fbx;*.dae;*.off;*.x;*.gltf;*.glb|All files (*.*)|*.*",
+                    Title = "Seleziona un file 3D (Assimp)"
+                };
+                if (ofd.ShowDialog() == true && System.IO.File.Exists(ofd.FileName))
+                {
+                    foreach (var si in Simple3DApp.Services.AssimpSceneLoader.LoadAsSceneItems(ofd.FileName))
+                        Items.Add(si);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Windows.MessageBox.Show("Errore durante l'import 3D (Assimp):\n" + ex.Message, "Import 3D", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+
+        private void BuildTubesAfterLines()
+        {
+            if (_layerToLines == null || _layerToLines.Count == 0) return;
+            var dict = Simple3DApp.Services.TubesFromLinesBuilder.BuildFromLayeredLines(_layerToLines, (float)TubeRadius, 8);
+            _layerToTubes = dict;
+            RefreshVisibleTubes();
+        }
+
+        private void RefreshVisibleTubes()
+        {
+            Tubes.Clear();
+            foreach (var kv in _layerToTubes)
+                if (kv.Key <= CurrentMaxLayer)
+                    foreach (var it in kv.Value) Tubes.Add(it);
+        }
         public event PropertyChangedEventHandler PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string name = null)
         {
@@ -279,10 +276,3 @@ private void ImportStl()
         }
     }
 }
-        private void RefreshVisibleTubes()
-        {
-            Tubes.Clear();
-            foreach (var kv in _layerToTubes)
-                if (kv.Key <= CurrentMaxLayer)
-                    foreach (var it in kv.Value) Tubes.Add(it);
-        }

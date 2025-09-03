@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Simple3DApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+922dabcd676e490665f8a18d79c49270d1737438")]
 [assembly: System.Reflection.AssemblyProductAttribute("Simple3DApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Simple3DApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
