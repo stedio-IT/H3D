@@ -28,7 +28,7 @@ namespace Simple3DApp.Services
                     var mb = new Hx.MeshBuilder(true, true, true);
                     // Indices sono coppie: ogni 2 indici una linea (segmento)
                     var pos = geo.Positions;
-                    var idx = geo.indices ?? geo.Indices; // robustness
+                    var idx = geo.Indices ?? geo.Indices; // robustness
                     if (idx == null) idx = new Hx.IntCollection();
                     for (int i = 0; i + 1 < idx.Count; i += 2)
                     {

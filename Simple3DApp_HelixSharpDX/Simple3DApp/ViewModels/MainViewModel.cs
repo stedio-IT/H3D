@@ -1,9 +1,11 @@
-using Hx = HelixToolkit.Wpf.SharpDX;
+using HelixToolkit.Wpf.SharpDX;
+using Microsoft.Win32;
 using SharpDX;
 using Simple3DApp.Helpers;
 using Simple3DApp.Models;
 using Simple3DApp.Services;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -11,12 +13,22 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
-using Microsoft.Win32;
+using Hx = HelixToolkit.Wpf.SharpDX;
 
 namespace Simple3DApp.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
+
+        public double TubeRadius { get; set; } = 0.25;
+
+        // Collezione bindabile di elementi 3D (usata in XAML con ItemsModel3D/GroupModel3D)
+        public ObservableCollection<Element3D> Tubes { get; } = new ObservableCollection<Element3D>();
+
+        // Mappa layer -> modello (utile per show/hide per layer)
+        private Dictionary<int, MeshGeometryModel3D> _layerToTubes = new Dictionary<int, MeshGeometryModel3D>();
+
+
         public Hx.IEffectsManager EffectsManager { get; } = new Hx.DefaultEffectsManager();
 
         public Hx.PerspectiveCamera Camera { get; } = new Hx.PerspectiveCamera
