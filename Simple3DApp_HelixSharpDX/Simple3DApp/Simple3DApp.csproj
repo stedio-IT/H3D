@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Simple3DApp</RootNamespace>
+    <AssemblyName>Simple3DApp</AssemblyName>
+    <LangVersion>8.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HelixToolkit.SharpDX.Assimp" Version="2.27.3" />
+    <PackageReference Include="HelixToolkit.SharpDX.Core" Version="2.27.3" />
+    <PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="2.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+</Project>

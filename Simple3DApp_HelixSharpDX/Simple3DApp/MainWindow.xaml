@@ -1,0 +1,122 @@
+
+<Window x:Class="Simple3DApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ht="http://helix-toolkit.org/wpf/SharpDX"
+        xmlns:vm="clr-namespace:Simple3DApp.ViewModels"
+        xmlns:models="clr-namespace:Simple3DApp.Models"
+        xmlns:srv="clr-namespace:Simple3DApp.Services"
+        mc:Ignorable="d"
+        Title="Simple3DApp • HelixToolkit.Wpf.SharpDX" Height="720" Width="1080"
+        WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+    <DockPanel>
+        <!-- Toolbar -->
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <Button Content="Aggiungi Cubo" Command="{Binding AddCubeCommand}" Margin="2"/>
+                <Button Content="Aggiungi Sfera" Command="{Binding AddSphereCommand}" Margin="2"/>
+                <Button Content="Piano XY" Command="{Binding AddPlaneCommand}" Margin="2"/>
+                <Separator/>
+                <Button Content="Importa STL..." Command="{Binding ImportStlCommand}" Margin="2"/>
+                <Button Content="Importa G-code..." Command="{Binding ImportGcodeCommand}" Margin="2"/>
+                <Button Content="Pulisci Mesh" Command="{Binding ClearCommand}" Margin="2"/>
+                <Button Content="Pulisci G-code" Command="{Binding ClearGcodeCommand}" Margin="2"/>
+                <Separator/>
+                <Button Content="Zoom Extents" Click="ZoomExtents_Click" Margin="2"/>
+<Separator/>
+<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+    <TextBlock Text="Layer:" Margin="6,0,4,0" VerticalAlignment="Center"/>
+    <Slider Width="220" Minimum="0" Maximum="{Binding MaxLayer}" Value="{Binding CurrentMaxLayer}" TickFrequency="1" IsSnapToTickEnabled="True"/>
+    <TextBlock Text="{Binding CurrentMaxLayer}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+</StackPanel>
+<Separator/>
+<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+    <ProgressBar Width="180" Height="16" Minimum="0" Maximum="1" Value="{Binding Progress}" />
+    <TextBlock Text="{Binding Status}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+    <Button Content="Annulla" Command="{Binding CancelLoadCommand}" Margin="6,0,0,0"/>
+</StackPanel>
+
+<Separator/>
+<TextBlock Text="Colori:" VerticalAlignment="Center" Margin="6,0,4,0"/>
+<ComboBox Width="140" SelectedValue="{Binding ColorMode}" SelectedValuePath="Tag" Margin="2">
+    <ComboBoxItem Content="Per tipo" Tag="{x:Static srv:GCodeColorMode.ByType}"/>
+    <ComboBoxItem Content="Per velocità" Tag="{x:Static srv:GCodeColorMode.BySpeed}"/>
+    <ComboBoxItem Content="Per tag" Tag="{x:Static srv:GCodeColorMode.ByTag}"/>
+</ComboBox>
+
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- 3D Viewport -->
+        <ht:Viewport3DX x:Name="viewport"
+                        EffectsManager="{Binding EffectsManager}"
+                        Camera="{Binding Camera}"
+                        EnableCurrentPosition="True"
+                        ShowCoordinateSystem="True"
+                        ShowFrameRate="True"
+                        ZoomExtentsWhenLoaded="True"
+                        IsMoveEnabled="True"
+                        IsRotationEnabled="True"
+                        IsZoomEnabled="True"
+                        ModelUpDirection="0,0,1"
+                        ShowViewCube="True">
+            <ht:Viewport3DX.Items>
+                <ht:AmbientLight3D Color="#404040"/>
+                <ht:DirectionalLight3D Direction="-1,-1,-1" Color="#FFFFFF"/>
+                <ht:DirectionalLight3D Direction="1,-0.5,-1" Color="#B0B0B0"/>
+
+                <!-- Ground plane -->
+                <ht:MeshGeometryModel3D>
+                    <ht:MeshGeometryModel3D.Geometry>
+                        <ht:MeshGeometry3D Positions="-250,-250,0  250,-250,0  250,250,0  -250,250,0" Indices="0 1 2 0 2 3"/>
+                    </ht:MeshGeometryModel3D.Geometry>
+                    <ht:MeshGeometryModel3D.Material>
+                        <ht:PhongMaterial DiffuseColor="#30FFFFFF" AmbientColor="#20000000" SpecularColor="#22000000" SpecularShininess="5"/>
+                    </ht:MeshGeometryModel3D.Material>
+                </ht:MeshGeometryModel3D>
+
+                
+                <!-- G-code Tubes (merged meshes) -->
+                <ht:ItemsModel3D ItemsSource="{Binding Tubes}">
+                    <ht:ItemsModel3D.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:SceneItem}">
+                            <ht:MeshGeometryModel3D Geometry="{Binding Geometry}"
+                                                    Material="{Binding Material}"
+                                                    Transform="{Binding Transform}" />
+                        </DataTemplate>
+                    </ht:ItemsModel3D.ItemTemplate>
+                </ht:ItemsModel3D>
+
+                <!-- G-code Lines via binding -->
+
+                <ht:ItemsModel3D ItemsSource="{Binding Lines}">
+                    <ht:ItemsModel3D.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:LineItem}">
+                            <ht:LineGeometryModel3D Geometry="{Binding Geometry}"
+                                                     Color="{Binding Color}"
+                                                     Thickness="{Binding Thickness}"
+                                                     Transform="{Binding Transform}"/>
+                        </DataTemplate>
+                    </ht:ItemsModel3D.ItemTemplate>
+                </ht:ItemsModel3D>
+
+                <!-- Mesh Items via binding -->
+                <ht:ItemsModel3D ItemsSource="{Binding Items}">
+                    <ht:ItemsModel3D.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:SceneItem}">
+                            <ht:MeshGeometryModel3D Geometry="{Binding Geometry}"
+                                                    Material="{Binding Material}"
+                                                    Transform="{Binding Transform}"
+                                                    CullMode="Back" />
+                        </DataTemplate>
+                    </ht:ItemsModel3D.ItemTemplate>
+                </ht:ItemsModel3D>
+            </ht:Viewport3DX.Items>
+        </ht:Viewport3DX>
+    </DockPanel>
+</Window>
