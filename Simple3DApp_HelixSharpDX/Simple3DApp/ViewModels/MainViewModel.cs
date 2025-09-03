@@ -26,7 +26,7 @@ namespace Simple3DApp.ViewModels
         public ObservableCollection<Element3D> Tubes { get; } = new ObservableCollection<Element3D>();
 
         // Mappa layer -> modello (utile per show/hide per layer)
-        private Dictionary<int, MeshGeometryModel3D> _layerToTubes = new Dictionary<int, MeshGeometryModel3D>();
+        private Dictionary<int, List<Hx.MeshGeometryModel3D>> _layerToTubes = new Dictionary<int, List<Hx.MeshGeometryModel3D>>();
 
 
         public Hx.IEffectsManager EffectsManager { get; } = new Hx.DefaultEffectsManager();
@@ -268,7 +268,29 @@ namespace Simple3DApp.ViewModels
         private void BuildTubesAfterLines()
         {
             if (_layerToLines == null || _layerToLines.Count == 0) return;
-            var dict = Simple3DApp.Services.TubesFromLinesBuilder.BuildFromLayeredLines(_layerToLines, (float)TubeRadius, 8);
+
+            // Ottengo SceneItem per layer dal builder
+            var sceneDict = Simple3DApp.Services.TubesFromLinesBuilder.BuildFromLayeredLines(_layerToLines, (float)TubeRadius, 8);
+
+            // Converto SceneItem -> MeshGeometryModel3D (Element3D) per poterli inserire nella collection Tubes
+            var dict = new Dictionary<int, List<Hx.MeshGeometryModel3D>>();
+            foreach (var kv in sceneDict)
+            {
+                var layer = kv.Key;
+                var list = new List<Hx.MeshGeometryModel3D>();
+                foreach (var si in kv.Value)
+                {
+                    var model = new Hx.MeshGeometryModel3D
+                    {
+                        Geometry = si.Geometry,
+                        Material = si.Material,
+                        Transform = si.Transform
+                    };
+                    list.Add(model);
+                }
+                dict[layer] = list;
+            }
+
             _layerToTubes = dict;
             RefreshVisibleTubes();
         }
