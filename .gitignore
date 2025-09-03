@@ -1,0 +1,8 @@
+﻿################################################################################
+# Il file gitignore è stato creato automaticamente da Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Simple3DApp_HelixSharpDX/.vs
+/Simple3DApp_HelixSharpDX/Simple3DApp/obj/Debug/net48
+/Simple3DApp_HelixSharpDX/Simple3DApp/obj/Release/net48
